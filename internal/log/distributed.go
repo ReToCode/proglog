@@ -34,6 +34,24 @@ func NewDistributedLog(dataDir string, config Config) (*DistributedLog, error) {
 	return l, nil
 }
 
+func (l *DistributedLog) GetServers() ([]*api.Server, error) {
+	future := l.raft.GetConfiguration()
+	if err := future.Error(); err != nil {
+		return nil, err
+	}
+
+	var servers []*api.Server
+	leaderAddr, _ := l.raft.LeaderWithID()
+	for _, server := range future.Configuration().Servers {
+		servers = append(servers, &api.Server{
+			Id:       string(server.ID),
+			RpcAddr:  string(server.Address),
+			IsLeader: leaderAddr == server.Address,
+		})
+	}
+	return servers, nil
+}
+
 func (l *DistributedLog) setupLog(dataDir string) error {
 	logDir := filepath.Join(dataDir, "log")
 	if err := os.MkdirAll(logDir, 0755); err != nil {

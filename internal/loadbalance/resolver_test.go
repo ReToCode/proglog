@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/serviceconfig"
 	"net"
-	"net/url"
 	"testing"
 )
 
@@ -55,12 +54,9 @@ func TestResolver(t *testing.T) {
 	r := &loadbalance.Resolver{}
 	require.NoError(t, err)
 
-	u, err := url.Parse("tcp://" + l.Addr().String())
-	require.NoError(t, err)
-
 	_, err = r.Build(
 		resolver.Target{
-			URL: *u,
+			Endpoint: l.Addr().String(),
 		}, conn,
 		opts,
 	)
